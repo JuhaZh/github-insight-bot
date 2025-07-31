@@ -155,10 +155,13 @@ def print_console_report(repos: List[Dict], analysis_result: Dict):
         
         print("-" * 50)
     
-    # 打印语言分布
+    # 打印语言分布（按项目数量降序排序）
     print("\n编程语言分布:")
-    for lang, count in analysis_result['language_stats'].items():
-        print(f"  {lang}: {count} 个项目")
+    sorted_stats = sorted(analysis_result['language_stats'].items(), 
+                         key=lambda x: x[1], reverse=True)
+    for lang, count in sorted_stats:
+        lang_display = lang if lang else "N/A"
+        print(f"  {lang_display}: {count} 个项目")
     
     # 打印总结
     print(f"\n⭐ 总星标数: {analysis_result['total_stars']}")
@@ -224,10 +227,15 @@ def save_markdown_report(repos: List[Dict], analysis_result: Dict, days: int = 7
         # 添加表格行
         table_rows.append(f"| {i} | {name_link} | {author_md} | {stars} | {forks} | {language} | {description_with_ai} |")
     
-    # 构建语言分布表格
-    lang_table = ["| 语言 | 项目数量 |", "|------|----------|"]
-    for lang, count in analysis_result['language_stats'].items():
-        lang_table.append(f"| {lang} | {count}个项目 |")
+    # 构建语言分布表格（按项目数量降序排序）
+    sorted_stats = sorted(analysis_result['language_stats'].items(), 
+                         key=lambda x: x[1], reverse=True)
+    lang_table = [
+        "| 语言 | 项目数量 |",
+        "| :--- | :------- |",  # 左对齐
+        *[f"| {lang if lang else 'N/A'} | {count}个项目 |" 
+          for lang, count in sorted_stats]
+    ]
     
     # 写入Markdown文件
     try:
@@ -261,31 +269,6 @@ def save_markdown_report(repos: List[Dict], analysis_result: Dict, days: int = 7
         print(f"❌ 保存Markdown报告失败: {e}")
         return ""
 
-    # 动态生成语言分布表格
-    lang_table_header = "| 语言 | 项目数量 |\n"
-    lang_table_separator = "|------|----------|\n"
-    lang_table_rows = ""
-    for lang, count in language_stats.items():
-        lang_table_rows += f"| {lang} | {count}个项目 |\n"
-    lang_full_table = lang_table_header + lang_table_separator + lang_table_rows
-
-    try:
-        with open(filename, 'w', encoding='utf-8') as f:
-            f.write("# 🔥 GitHub 热门项目洞察报告\n\n")
-            f.write(f"**查询时间：** {query_time}  ")
-            f.write(f"**时间范围：** 最近{days}天  ")
-            f.write(f"**项目数量：** {len(repos)}个\n\n")
-            f.write("## 🏆 热门项目排行榜\n\n")
-            f.write(full_table)
-            f.write("\n## 📊 编程语言分布\n\n")
-            f.write(lang_full_table)
-            f.write(f"\n⭐ 总星标数: {analysis_result['total_stars']}  ")
-            f.write(f"🍴 总Fork数: {analysis_result['total_forks']}\n")
-            f.write("\n> 注：N/A 表示该项目未指定主语言，或为文档/多语言项目。\n")
-        print(f"✅ 报告已保存：{filename}")
-    except Exception as e:
-        print(f"❌ 保存失败：{e}")
-    
 # 创建README缓存目录
 README_CACHE_DIR = "readme_cache"
 if not os.path.exists(README_CACHE_DIR):
