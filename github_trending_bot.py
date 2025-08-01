@@ -131,7 +131,7 @@ def print_console_report(repos: List[Dict], analysis_result: Dict):
         print(f"🔗 链接: {repo['html_url']}")
         
         # 处理描述文本
-        description = repo.get('description', '无描述')
+        description = repo.get('description') or '无描述'
         if len(description) > 100:
             description = description[:100] + "..."
         print(f"📝 描述: {description}")
@@ -213,7 +213,8 @@ def save_markdown_report(repos: List[Dict], analysis_result: Dict, days: int = 7
         language = repo['language'] or 'N/A'
         
         # 处理描述文本
-        description = repo.get('description', '无描述').replace('\n', ' ').replace('|', '｜')
+        description = repo.get('description') or '无描述'
+        description = description.replace('\n', ' ').replace('|', '｜')
         if len(description) > 50:
             description = description[:50] + "..."
         
